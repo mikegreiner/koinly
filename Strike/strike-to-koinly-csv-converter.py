@@ -25,9 +25,6 @@ print('Date,Sent Amount,Sent Currency,Received Amount,Received Currency,Fee Amou
 with open(inputCsv, newline='') as strikeCsvFile:
     reader = csv.DictReader(strikeCsvFile)
     for row in reader:
-        # print(row['Time (UTC)'], row['Transaction Type'], row['State'])
-        outputDelimiter = ','
-
         # Only process completed (successful) trades
         if row['State'] == 'Completed':
             if row['Transaction Type'] == 'Trade':
