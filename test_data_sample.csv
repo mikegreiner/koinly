@@ -1,0 +1,9 @@
+Reference,Date & Time (UTC),Transaction Type,Amount USD,Fee USD,Amount BTC,Fee BTC,BTC Price,Cost Basis (USD),Destination,Description,Transaction Hash,Note
+test-deposit-1,Jan 01 2025 03:23:18,Deposit,10.00,,,,,,,,,
+test-purchase-1,Jan 01 2025 03:23:34,Purchase,-10.00,,0.00010675,,93676.81,10.00,,,,
+test-sale-1,Jan 08 2025 05:20:53,Sale,1146.82,10.89,-0.01191199,,111372.44,,,Bill pay to DISCOVER,,
+test-withdrawal-1,Jan 08 2025 05:20:51,Withdrawal,-1135.93,,,,,,,Bill pay to DISCOVER,,
+test-send-1,Jul 27 2025 16:40:04,Send,,,-0.00100051,0.00000051,,,lnbc1m1p5gv4shpp5xg2d6wpphqcpgfe3ecrjwhqdwnfyyls4047h2m6jfqvkgqk9aqnsdp9f35kw6r5de5kueeqv3jhqmmnd96zqvpwxqcrzcqzzsxqrrssrzjqvphmsywntrrhqjcraumvc4y6r8v4z5v593trte429v4hredj7ms5rdxngqqgecqqyqqqqqqqqqqqqqq2qsp5lx694ppunp6s3gk4vjl0j4gtt3xx44vynk65gx2f2hvcztep0dms9qxpqysgq3xhkk0gzam8es5rqw35sker2a40wkz9lpg4lnlyrk6cuyqjrxge4mj39fewgjefwf6zp6ju4x7ddqa0n6zsu5d2whdf3eh2trx5jtqqpr6vy2t,Lightning deposit 0.001,3214dd3821b830142731ce07275c0d74d2427e157d7d756f5248196402c5e827,
+test-receive-1,Apr 26 2025 17:35:24,Receive,,,,,,,lnbc100u1p5q6x8rpp5lpa6yc0ja5pcxpu8lzu8ln9zkfw69kxcdedgaetlqywxh4mvp8jsdqqcqzzsxqrrs0fppq7xh3gd5d7rpjt77k2059nzpz98vycuccsp5lkxtnzqzfp42xyet3n3natczw9y2wncfw9rclzt2xw48a7s30quq9qxpqysgqa95acw7utg5e50vxxj9ng7euzyzfk4m583l2eqat3j3edq8v6n6ps5nxk9qln2jpjxllf38rx96hhrme2ccamzmc884jfquscakg48qqzn3fc0,,f87ba261f2ed03830787f8b87fcca2b25da2d8d86e5a8ee57f011c6bd76c09e5,
+test-loan-1,Nov 15 2025 02:59:15,Loan,10000.00,,,,,,,,,
+test-loan-collateral-1,Nov 15 2025 02:59:14,Loan collateral,,,-0.12345678,,,,,,,
