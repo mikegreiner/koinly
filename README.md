@@ -1,12 +1,14 @@
 # Strike to Koinly CSV Converter (Minimal)
 
-A minimal Python tool that only converts problematic transactions (currently loans) to Koinly format. All other transactions should be imported directly from the original Strike CSV.
+A minimal Python tool that only converts problematic transactions (loans and Lightning) to Koinly format. All other transactions should be imported directly from the original Strike CSV.
+
+**Version:** 1.1.0
 
 ## Quick Start
 
 ```bash
-# Convert only loan transactions to Koinly format
-python3 strike-to-koinly-csv-converter.py data/strike-2025-annual-transactions__ORIG.csv -o loans.csv
+# Convert loan and Lightning transactions to Koinly format
+python3 strike-to-koinly-csv-converter.py data/strike-2025-annual-transactions__ORIG.csv -o converted.csv
 
 # View help
 python3 strike-to-koinly-csv-converter.py -h
@@ -17,9 +19,9 @@ python3 -m pytest test_strike_converter.py -v
 
 ## Overview
 
-**Koinly can import Strike 2025 CSV format directly** - except for certain transaction types (currently loans). This converter:
+**Koinly can import Strike 2025 CSV format directly** - except for certain transaction types (loans and Lightning). This converter:
 
-- ✅ **Only converts problematic transactions** - Currently just loan transactions
+- ✅ **Only converts problematic transactions** - Loans and Lightning transactions
 - ✅ **Ignores all working transactions** - Import them directly from Strike CSV
 - ✅ **Minimal conversion** - No unnecessary data transformation
 - ✅ **Easy to extend** - Add new transaction types as problems arise
@@ -28,9 +30,10 @@ python3 -m pytest test_strike_converter.py -v
 
 ### What It Does
 
-- **Only outputs transactions that need conversion** (currently loans)
+- **Only outputs transactions that need conversion** (loans and Lightning)
 - **Ignores all other transactions** - they work fine in Strike format
 - Converts loan transactions to Koinly format with proper tax labeling
+- Decodes Lightning invoice amounts from BOLT11 format and converts to Koinly format
 - Outputs minimal CSV with only problematic transactions
 
 ## Requirements
@@ -68,31 +71,35 @@ python3 strike-to-koinly-csv-converter.py [-h] [-o FILE] input_file
 python3 strike-to-koinly-csv-converter.py -h
 ```
 
-**Convert only loan transactions to stdout:**
+**Convert loan and Lightning transactions to stdout:**
 ```bash
 python3 strike-to-koinly-csv-converter.py data/strike-2025-annual-transactions__ORIG.csv
 ```
 
-**Convert only loan transactions and save to file:**
+**Convert loan and Lightning transactions and save to file:**
 ```bash
-python3 strike-to-koinly-csv-converter.py data/strike-2025-annual-transactions__ORIG.csv -o loans.csv
+python3 strike-to-koinly-csv-converter.py data/strike-2025-annual-transactions__ORIG.csv -o converted.csv
 ```
 
 ### How to Import into Koinly
 
 1. **Import the original Strike CSV** into Koinly (it accepts Strike format directly)
-2. **Import the output from this converter** (loans in Koinly format)
-3. All transactions are now in Koinly!
+2. **Delete any Lightning transactions** that were imported with missing/zero amounts (they'll be duplicates)
+3. **Import the output from this converter** (loans and Lightning transactions in Koinly format)
+4. All transactions are now in Koinly!
 
 **Example:**
 ```bash
-# Generate loans file
-python3 strike-to-koinly-csv-converter.py strike-2025-annual-transactions__ORIG.csv -o loans.csv
+# Generate converted file
+python3 strike-to-koinly-csv-converter.py strike-2025-annual-transactions__ORIG.csv -o converted.csv
 
 # Then in Koinly:
-# 1. Import strike-2025-annual-transactions__ORIG.csv (all non-loan transactions)
-# 2. Import loans.csv (loan transactions)
+# 1. Import strike-2025-annual-transactions__ORIG.csv (all non-problematic transactions)
+# 2. Delete any Lightning transactions that have 0.0 or missing amounts (identified by transaction hash)
+# 3. Import converted.csv (loan and Lightning transactions with correct amounts)
 ```
+
+**Note:** Lightning transactions in the original Strike CSV often have empty Amount BTC/USD fields. The converter decodes the amounts from the Lightning invoice (BOLT11 format) and creates properly formatted transactions. You'll need to delete the old Lightning transactions with missing amounts before importing the corrected ones.
 
 ## Input/Output Formats
 
@@ -110,7 +117,7 @@ Reference,Date & Time (UTC),Transaction Type,Amount USD,Fee USD,Amount BTC,Fee B
 Date,Sent Amount,Sent Currency,Received Amount,Received Currency,Fee Amount,Fee Currency,Net Worth Amount,Net Worth Currency,Label,Description,TxHash
 ```
 
-**Only problematic transactions** (currently loans) are converted to this format.
+**Only problematic transactions** (loans and Lightning) are converted to this format.
 
 ## Supported Transaction Types
 
@@ -131,8 +138,16 @@ The converter handles all Strike transaction types:
 
 - **Loan**: USD loan receipt (not taxable income, labeled "Loan" for Koinly)
 - **Loan collateral**: BTC used as collateral (not a sale, **empty Label field** because Koinly doesn't allow "Loan" label on withdrawals; loan information is in Description field for manual categorization)
+- **Lightning Receive**: BTC received via Lightning Network (deposits) - amounts decoded from BOLT11 invoice format
+- **Lightning Send**: BTC sent via Lightning Network (withdrawals) - amounts decoded from BOLT11 invoice format
 
-**All other transaction types** (Purchase, Sale, Deposit, Withdrawal, Send, Receive) work fine in Strike format and are ignored by this converter.
+**Why Lightning transactions need conversion:**
+- Strike CSV exports often have empty Amount BTC/USD fields for Lightning transactions
+- The converter decodes the BTC amount from the Lightning invoice (BOLT11 format) in the Destination field
+- Supports all BOLT11 multipliers: milli (m), micro (u), nano (n), pico (p)
+- Properly formats amounts to avoid scientific notation
+
+**All other transaction types** (Purchase, Sale, Deposit, Withdrawal, non-Lightning Send/Receive) work fine in Strike format and are ignored by this converter.
 
 ## Testing
 
@@ -164,17 +179,18 @@ python3 -m unittest test_strike_converter.py -v
 
 ### Test Coverage
 
-The test suite includes **9 tests** covering:
+The test suite includes **20+ tests** covering:
 
-- ✅ **Helper functions**: `abs_value()`
+- ✅ **Helper functions**: `abs_value()`, `format_btc_amount()`, `decode_lightning_invoice()`, `is_lightning_transaction()`
 - ✅ **Loan conversion**: Loan and Loan collateral transactions
-- ✅ **Non-loan filtering**: Non-loan transactions are correctly ignored
+- ✅ **Lightning conversion**: Lightning Receive and Send transactions with various amounts
+- ✅ **Transaction filtering**: Non-problematic transactions are correctly ignored
 - ✅ **Full CSV processing**: End-to-end file processing
-- ✅ **Edge cases**: Missing amounts, no loans found
+- ✅ **Edge cases**: Missing amounts, invalid invoices, no problematic transactions found
 
 ### Test Files
 
-- `test_strike_converter.py`: Main test suite (19 tests)
+- `test_strike_converter.py`: Main test suite (20+ tests)
 - `test_data_sample.csv`: Sample test data covering all transaction types
 - `pytest.ini`: Pytest configuration
 - `requirements.txt`: Test dependencies (pytest, pytest-cov)
